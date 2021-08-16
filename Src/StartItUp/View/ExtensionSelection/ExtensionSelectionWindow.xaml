@@ -1,0 +1,24 @@
+﻿<Window x:Class="StartItUp.View.ExtensionSelection.ExtensionSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StartItUp.View.ExtensionSelection"
+        mc:Ignorable="d"
+        Title="Profile" Height="273.358" Width="240.541"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="ToolWindow">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Content="Select a startup profile type:" />
+        <ListView Grid.Row="1" x:Name="ltvExtensions" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Button x:Name="btnAccept" Content="Accept" Width="50" Margin="0 10" />
+        </StackPanel>
+    </Grid>
+</Window>
