@@ -1,0 +1,10 @@
+
+.vs
+Output
+packages
+Src/CommonImplementation/obj
+Src/CommonImplementation/bin
+Src/StartItUp/obj
+Src/StartItUp/bin
+Src/Extensions/Worksnaps/obj
+Src/Extensions/Worksnaps/bin
