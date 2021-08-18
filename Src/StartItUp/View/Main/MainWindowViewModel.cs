@@ -1,21 +1,13 @@
-﻿using CommonImplementation.Extensions;
-using CommonImplementation.System;
-using StartItUp.Extensions;
+﻿using StartItUp.Extensions;
 using StartItUp.Profiles;
 using StartItUp.Startup;
 using StartItUp.View.Common;
 using StartItUp.View.Model;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace StartItUp.View.Main
@@ -91,8 +83,8 @@ namespace StartItUp.View.Main
             foreach (var newProfile in e.NewItems.Cast<StartupProfile>())
             {
                 /*
-                 * When the application starts up,
-                 * all profiles are executed once.
+                 *  When the application starts up,
+                 *  all profiles are executed once.
                  */
                 ExecuteProfile(newProfile);
 
@@ -102,7 +94,12 @@ namespace StartItUp.View.Main
                  */
                 newProfile.Profile.PropertyChanged += (s, pe) =>
                 {
-                    ExecuteProfile(newProfile);
+                    _profileManager.Save();
+
+                    if (pe.PropertyName == nameof(newProfile.Profile.IsEnabled))
+                    {
+                        ExecuteProfile(newProfile);
+                    }
                 };
             }
         }

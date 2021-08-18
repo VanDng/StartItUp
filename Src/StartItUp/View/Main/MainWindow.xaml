@@ -9,7 +9,8 @@
         Height="250" Width="400"
         WindowStyle="ToolWindow" 
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="False">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

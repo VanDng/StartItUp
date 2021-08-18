@@ -12,25 +12,21 @@ namespace Worksnaps
 {
     public class Main : IExtensionInstance
     {
-        ConfigWindow _configWindow;
-
-        static int counter = 0;
+        WorksnapStartup _worksnapsStartup;
 
         public Main()
         {
-            _configWindow = null;
+            _worksnapsStartup = new WorksnapStartup();
         }
 
         public void Start()
         {
-            //throw new NotImplementedException();
-            Debug.WriteLine("Worksnaps start.");
+            _worksnapsStartup.Start();
         }
 
         public void Stop()
         {
-            //throw new NotImplementedException();
-            Debug.WriteLine("Worksnaps stop.");
+            _worksnapsStartup.Stop();
         }
 
         public void Config()
