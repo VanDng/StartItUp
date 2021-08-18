@@ -1,7 +1,6 @@
 
 .vs
 Output
-packages
 Src/CommonImplementation/obj
 Src/CommonImplementation/bin
 Src/StartItUp/obj
