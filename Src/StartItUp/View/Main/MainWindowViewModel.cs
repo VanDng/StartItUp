@@ -1,25 +1,35 @@
 ﻿using CommonImplementation.Extensions;
+using CommonImplementation.System;
 using StartItUp.Extensions;
 using StartItUp.Profiles;
+using StartItUp.Startup;
 using StartItUp.View.Common;
+using StartItUp.View.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace StartItUp.View.Main
 {
-    class MainWindowViewModel : INotifyPropertyChanged
+    class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
-#pragma warning disable 67
         public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore 67
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
 
         public delegate void OnAskProfileSelectionEventHandler(ExtensionManager profileManager);
 
@@ -33,14 +43,33 @@ namespace StartItUp.View.Main
 
         public ICommand CreateNewProfile { get; private set; }
 
-        public ObservableCollection<Profile> StartupProfiles { get; set; }
+        public ObservableCollection<StartupProfile> StartupProfiles { get; set; }
+
+        private bool _AutoStartApplicationWithSystem;
+        public bool AutoStartApplicationWithSystem
+        {
+            get
+            {
+                return _AutoStartApplicationWithSystem;
+            }
+            set
+            {
+                _AutoStartApplicationWithSystem = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         private ProfileManager _profileManager;
         private ExtensionManager _extensionManager;
+        private StartupManager _startupManager;
 
-        public MainWindowViewModel(ProfileManager profileManager, ExtensionManager extensionManager)
+        public MainWindowViewModel(ProfileManager profileManager,
+                                   ExtensionManager extensionManager,
+                                   StartupManager startupManager)
         {
-            PropertyChanged += MainWindowViewModel_PropertyChanged;
+            _profileManager = profileManager;
+            _extensionManager = extensionManager;
+            _startupManager = startupManager;
 
             NewStartupProfile = new RelayCommand<object>(ExecuteNewStartupProfileCommand);
             EditStartupProfile = new RelayCommand<object>(ExecuteEditStartupProfileCommand);
@@ -48,19 +77,42 @@ namespace StartItUp.View.Main
 
             CreateNewProfile = new RelayCommand<object>(ExecuteCreateNewProfileCommand);
            
-            StartupProfiles = new ObservableCollection<Profile>();
+            AutoStartApplicationWithSystem = _startupManager.IsAutoLaunchEnabled;
 
-            _profileManager = profileManager;
-            ReloadProfiles();
+            InitializeStartupProfiles();
 
-            StartupProfiles.Add(new Profile() { IsEnabled = true, Description = "A" });
-            StartupProfiles.Add(new Profile() { IsEnabled = false, Description = "B" });
+            PropertyChanged += MainWindowViewModel_PropertyChanged;
+        }
 
-            _extensionManager = extensionManager;
+        private void StartupProfiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems == null) return;
+
+            foreach (var newProfile in e.NewItems.Cast<StartupProfile>())
+            {
+                /*
+                 * When the application starts up,
+                 * all profiles are executed once.
+                 */
+                ExecuteProfile(newProfile);
+
+                /*
+                 * Whenever a users disable/enable a profile on GUI,
+                 * that profile will be started/stopped working correspondingly.
+                 */
+                newProfile.Profile.PropertyChanged += (s, pe) =>
+                {
+                    ExecuteProfile(newProfile);
+                };
+            }
         }
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(AutoStartApplicationWithSystem))
+            {
+                SetAutoStartApplicationWithSystem(AutoStartApplicationWithSystem);
+            }
         }
 
         private void ExecuteNewStartupProfileCommand(object o)
@@ -80,19 +132,82 @@ namespace StartItUp.View.Main
 
         private void ExecuteCreateNewProfileCommand(object o)
         {
-            string selectedProfile = (string)o;
-            _profileManager.New(selectedProfile);
+            string selectedProfile = o as string;
+            if (string.IsNullOrEmpty(selectedProfile)) return;
 
-            ReloadProfiles();
+            var profile = _profileManager.New(selectedProfile);
+
+            var startupProfile = MapProfileWithExtension(profile, _extensionManager);
+            if (startupProfile == null)
+            {
+                _profileManager.Delete(profile);
+            }
+            else
+            {
+                StartupProfiles.Add(startupProfile);
+                _profileManager.Save();
+            }
         }
 
-        private void ReloadProfiles()
+        private void InitializeStartupProfiles()
         {
-            _profileManager.Save();
-            _profileManager.Load();
+            StartupProfiles = new ObservableCollection<StartupProfile>();
+            StartupProfiles.CollectionChanged += StartupProfiles_CollectionChanged;
 
-            StartupProfiles.Clear();
-            StartupProfiles.AddRange(_profileManager.GetProfiles());
+            var profiles = _profileManager.Profiles;
+            foreach (var profile in profiles)
+            {
+                var startupProfile = MapProfileWithExtension(profile, _extensionManager);
+                StartupProfiles.Add(startupProfile);
+            }
+        }
+
+        private StartupProfile MapProfileWithExtension(Profile profile, ExtensionManager extensionManager)
+        {
+            StartupProfile startupProfile = null;
+
+            var extension = extensionManager.Extensions
+                                                .Where(e => e.Name.ToLower() == profile.ExtensionName.ToLower())
+                                                .FirstOrDefault();
+
+            if (extension == null)
+            {
+                // TODO Log an error of not found extension.
+            }
+            else
+            {
+                var extensionInstance = extension.CreateInstance();
+
+                startupProfile = new StartupProfile(profile, extensionInstance);
+            }
+
+            return startupProfile;
+        }
+
+        private void ExecuteProfile(StartupProfile profile)
+        {
+            if (profile.Profile.IsEnabled)
+            {
+                profile.Executor.Start();
+            }
+            else
+            {
+                profile.Executor.Stop();
+            }
+        }
+
+        private void SetAutoStartApplicationWithSystem(bool isEnabled)
+        {
+            _startupManager.SetAutoLaunch(isEnabled);
+        }
+
+        public void Dispose()
+        {
+            var runningProfiles = StartupProfiles.Where(p => p.Profile.IsEnabled);
+            foreach (var profile in runningProfiles)
+            {
+                profile.Executor.Stop();
+            }
         }
     }
 }

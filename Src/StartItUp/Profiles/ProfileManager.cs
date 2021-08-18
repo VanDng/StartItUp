@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace StartItUp.Profiles
@@ -16,6 +13,17 @@ namespace StartItUp.Profiles
         private string _profileFilePath;
 
         private List<Profile> _profiles { get; set; }
+
+        public ReadOnlyCollection<Profile> Profiles
+        {
+            get
+            {
+                return _profiles.AsReadOnly();
+            }
+            private set
+            {
+            }
+        }
 
         public ProfileManager(string rootDir)
         {
@@ -46,11 +54,24 @@ namespace StartItUp.Profiles
             {
                 _profiles = new List<Profile>();
             }
+
+            foreach(var profile in _profiles)
+            {
+                profile.ConfigDirectory = $"{_profilesDir}{profile.ConfigDirectory}";
+            }
         }
 
         public void Save()
         {
-            var profileJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
+            var saveProfiles = _profiles.Select(p => new Profile()
+            {
+                IsEnabled = p.IsEnabled,
+                Description = p.Description,
+                ExtensionName = p.ExtensionName,
+                ConfigDirectory = p.ConfigDirectory.Replace(_profilesDir, string.Empty)
+            });
+
+            var profileJson = JsonConvert.SerializeObject(saveProfiles, Formatting.Indented);
 
             try
             {
@@ -68,22 +89,23 @@ namespace StartItUp.Profiles
             // Prepare profile directory
             //
 
-            string profileDir = string.Empty;
+            string configProfileDir = string.Empty;
             do
             {
-                profileDir = Path.Combine(_profilesDir, Guid.NewGuid().ToString());
-            } while (Directory.Exists(profileDir));
+                configProfileDir = Path.Combine(_profilesDir, Guid.NewGuid().ToString());
+            } while (Directory.Exists(configProfileDir));
 
-            Directory.CreateDirectory(profileDir);
+            Directory.CreateDirectory(configProfileDir);
 
             //
             // Initialize profile
             //
 
             profile.IsEnabled = false;
-            profile.Description = string.Empty;
+            profile.Description = extensionName; // Default description is the extension name.
+                                                 // User can change it in the extension's configuration UI (if it's available) later.
             profile.ExtensionName = extensionName;
-            profile.ProfileDirectory = profileDir;
+            profile.ConfigDirectory = configProfileDir;
 
             _profiles.Add(profile);
 
@@ -93,11 +115,6 @@ namespace StartItUp.Profiles
         public void Delete(Profile profile)
         {
             _profiles.Remove(profile);
-        }
-
-        public Profile[] GetProfiles()
-        {
-            return _profiles.ToArray();
         }
     }
 }

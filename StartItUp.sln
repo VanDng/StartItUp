@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worksnaps", "Src\Extensions\Worksnaps\Worksnaps.csproj", "{171C15CA-126E-4A70-A529-B21B5D25E8AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test\Test.csproj", "{6CC2DB96-B730-4FA5-963B-468D8E5FD5CE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonImplementation", "Src\CommonImplementation\CommonImplementation.csproj", "{2D3870D5-95B9-4BC6-864A-465846A38386}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExtensionInterface", "Src\ExtensionInterface\ExtensionInterface.shproj", "{5BF172F2-DA98-4445-B95F-9AD64AD38AFE}"
@@ -34,10 +32,6 @@ Global
 		{171C15CA-126E-4A70-A529-B21B5D25E8AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{171C15CA-126E-4A70-A529-B21B5D25E8AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{171C15CA-126E-4A70-A529-B21B5D25E8AF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6CC2DB96-B730-4FA5-963B-468D8E5FD5CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6CC2DB96-B730-4FA5-963B-468D8E5FD5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6CC2DB96-B730-4FA5-963B-468D8E5FD5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6CC2DB96-B730-4FA5-963B-468D8E5FD5CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D3870D5-95B9-4BC6-864A-465846A38386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D3870D5-95B9-4BC6-864A-465846A38386}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D3870D5-95B9-4BC6-864A-465846A38386}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -14,6 +14,8 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -58,11 +60,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Startup\StartupManager.cs" />
     <Compile Include="View\ExtensionSelection\ExtensionSelectionViewModel.cs" />
     <Compile Include="View\ExtensionSelection\ExtensionSelectionWindow.xaml.cs">
       <DependentUpon>ExtensionSelectionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\ExtensionSelection\ExtensionSelectionWindowController.cs" />
+    <Compile Include="View\Model\StartupProfile.cs" />
     <Page Include="View\Main\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -77,8 +81,8 @@
       <DependentUpon>ProfileUC.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Common\RelayCommand.cs" />
-    <Compile Include="Profile\ProfileManager.cs" />
-    <Compile Include="Profile\Profile.cs" />
+    <Compile Include="Profiles\ProfileManager.cs" />
+    <Compile Include="Profiles\Profile.cs" />
     <Compile Include="Extension\Extension.cs" />
     <Compile Include="Extension\ExtensionInstance.cs" />
     <Compile Include="Extension\ExtensionManager.cs" />

@@ -1,5 +1,6 @@
 ﻿using StartItUp.Extensions;
 using StartItUp.Profiles;
+using StartItUp.Startup;
 using StartItUp.View.ExtensionSelection;
 using System;
 using System.Collections.Generic;
@@ -16,14 +17,22 @@ namespace StartItUp.View.Main
     {
         private MainWindowViewModel _viewModel;
 
-        public MainWindowController(ProfileManager profileManager, ExtensionManager extensionManager)
+        public MainWindowController(ProfileManager profileManager,
+                                    ExtensionManager extensionManager,
+                                    StartupManager startupManager)
         {
-            Initialization(profileManager, extensionManager);
+            Initialization(profileManager, extensionManager, startupManager);
         }
 
-        private void Initialization(ProfileManager profileManager, ExtensionManager extensionManager)
+        private void Initialization(ProfileManager profileManager,
+                                    ExtensionManager extensionManager,
+                                    StartupManager startupManager)
         {
-            _viewModel = new MainWindowViewModel(profileManager, extensionManager);
+            _viewModel = new MainWindowViewModel(profileManager, extensionManager, startupManager);
+
+            Binding autoStartAppWithSystemBinding = new Binding(nameof(_viewModel.AutoStartApplicationWithSystem));
+            autoStartAppWithSystemBinding.Source = _viewModel;
+            BindingOperations.SetBinding(cbAutoStartupWithSystem, CheckBox.IsCheckedProperty, autoStartAppWithSystemBinding);
 
             Binding startupProfileListBinding = new Binding(nameof(_viewModel.StartupProfiles));
             startupProfileListBinding.Source = _viewModel;
@@ -35,6 +44,7 @@ namespace StartItUp.View.Main
 
             _viewModel.OnAskProfileSelection += _viewModel_OnAskProfileSelection;
             _viewModel.OnEditStartupProfile += _viewModel_OnEditStartupProfile;
+            _viewModel.OnDeleteStartupProfile += _viewModel_OnDeleteStartupProfile;
         }
 
         private void _viewModel_OnAskProfileSelection(ExtensionManager extensionManager)
@@ -52,5 +62,9 @@ namespace StartItUp.View.Main
             MessageBox.Show("Not Implemented.");
         }
 
+        private void _viewModel_OnDeleteStartupProfile(object sender, EventArgs e)
+        {
+            MessageBox.Show("Not Implemented.");
+        }
     }
 }

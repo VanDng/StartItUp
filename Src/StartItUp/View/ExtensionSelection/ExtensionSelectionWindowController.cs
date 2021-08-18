@@ -32,7 +32,6 @@ namespace StartItUp.View.ExtensionSelection
 
         private void _viewModel_OnAcceptProfile(string extensionName)
         {
-
             Close();
         }
     }

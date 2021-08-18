@@ -1,5 +1,6 @@
 ﻿using StartItUp.Extensions;
 using StartItUp.Profiles;
+using StartItUp.Startup;
 using StartItUp.View.Main;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,9 @@ namespace StartItUp
             var extensionManager = new ExtensionManager();
             extensionManager.Load(rootDir);
 
-            MainWindowController main = new MainWindowController(profileManager, extensionManager);
+            var startupManager = new StartupManager();
+
+            MainWindowController main = new MainWindowController(profileManager, extensionManager, startupManager);
             main.Show();
         }
     }

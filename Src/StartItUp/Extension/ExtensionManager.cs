@@ -34,14 +34,26 @@ namespace StartItUp.Extensions
         public void Load(string rootDir)
         {
             string extensionRootDir = Path.Combine(rootDir, "Extensions");
-            var dirs = Directory.EnumerateDirectories(extensionRootDir);
 
-            foreach(var extensionDirectoryPath in dirs)
+            if (Directory.Exists(extensionRootDir))
             {
-                Extension extension = new Extension(extensionDirectoryPath);
-                extension.Load();
+                var dirs = Directory.EnumerateDirectories(extensionRootDir);
 
-                _extensions.Add(extension);
+                foreach (var extensionDirectoryPath in dirs)
+                {
+                    try
+                    {
+                        Extension extension = new Extension(extensionDirectoryPath);
+                        _extensions.Add(extension);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            else
+            {
+                // TODO Log
             }
         }
     }

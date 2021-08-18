@@ -1,4 +1,5 @@
 ﻿using StartItUp.Profiles;
+using StartItUp.View.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,13 +33,18 @@ namespace StartItUp.View.Main
         {
             if (DataContext == null) return;
 
-            Profile profile = (Profile)DataContext;
+            StartupProfile startUpProfile = DataContext as StartupProfile;
+            if (startUpProfile == null) return;
 
-            Binding enableProfileBinding = new Binding(nameof(profile.IsEnabled));
+            Profile profile = startUpProfile.Profile;
+
+            string x = $"{nameof(startUpProfile.Profile)}.{nameof(profile.IsEnabled)}";
+            Binding enableProfileBinding = new Binding($"{nameof(startUpProfile.Profile)}.{nameof(profile.IsEnabled)}");
             enableProfileBinding.Source = DataContext;
+            enableProfileBinding.Mode = BindingMode.TwoWay;
             BindingOperations.SetBinding(chkIsEnabled, CheckBox.IsCheckedProperty, enableProfileBinding);
 
-            Binding profileDescriptionBinding = new Binding(nameof(profile.Description));
+            Binding profileDescriptionBinding = new Binding($"{nameof(startUpProfile.Profile)}.{nameof(profile.Description)}");
             profileDescriptionBinding.Source = DataContext;
             BindingOperations.SetBinding(lblProfileDescription, Label.ContentProperty, profileDescriptionBinding);
         }

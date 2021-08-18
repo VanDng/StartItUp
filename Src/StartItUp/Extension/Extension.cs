@@ -28,10 +28,7 @@ namespace StartItUp.Extensions
 
             Dir = extensionDir;
             _dllPath = Path.Combine(Dir, $"{Name}.dll");
-        }
 
-        public void Load()
-        {
             _dll = Assembly.LoadFrom(_dllPath);
             _type = _dll.GetType(string.Format("{0}.{1}", Name, "Main"));
         }
@@ -42,38 +39,5 @@ namespace StartItUp.Extensions
             var extension = new ExtensionInstance(this, _type, instance);
             return extension;
         }
-
-        //public  Profile[] GetStartupProfiles()
-        //{
-        //    List<Profile> startupProfiles = new List<Profile>();
-
-        //    var profileDir = Path.Combine(Dir, "Profiles");
-
-        //    if (Directory.Exists(profileDir))
-        //    {
-        //        var dirs = Directory.GetDirectories(profileDir);
-        //        foreach(var dir in dirs)
-        //        {
-        //            string id = Path.GetFileNameWithoutExtension(dir);
-        //            string description = string.Empty;
-
-        //            try
-        //            {
-        //                var desFilePath = Path.Combine(dir, "Description.txt");
-        //                description = File.ReadAllText(desFilePath);
-        //            }
-        //            catch
-        //            { }
-
-        //            Profile profile = new Profile();
-        //            profile.Name = id;
-        //            profile.Description = description;
-
-        //            startupProfiles.Add(profile);
-        //        }
-        //    }
-
-        //    return startupProfiles.ToArray();
-        //}
     }
 }

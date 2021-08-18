@@ -1,6 +1,7 @@
 ﻿using ExtensionInterface;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -22,12 +23,14 @@ namespace Worksnaps
 
         public void Start()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            Debug.WriteLine("Worksnaps start.");
         }
 
         public void Stop()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            Debug.WriteLine("Worksnaps stop.");
         }
 
         public void Config()
