@@ -21,7 +21,7 @@ namespace StartItUp
     {
         public App()
         {
-            
+            // TODO One instance of app is allowed.
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -34,7 +34,7 @@ namespace StartItUp
             var extensionManager = new ExtensionManager();
             extensionManager.Load(rootDir);
 
-            var startupManager = new StartupManager();
+            var startupManager = new StartupManager(e.Args);
 
             MainWindowController main = new MainWindowController(profileManager, extensionManager, startupManager);
             main.Show();

@@ -9,7 +9,10 @@ namespace StartItUp.Startup
 {
     class StartupManager
     {
+        private const string AutoLaunchKey = "autolaunch";
+
         private string _appFilePath;
+        private bool _isLaunchedManuallyByEndUser;
 
         public bool IsAutoLaunchEnabled
         {
@@ -19,16 +22,26 @@ namespace StartItUp.Startup
             }
         }
 
-        public StartupManager()
+        public bool IsLaunchedManuallyByEndUser
+        {
+            get
+            {
+                return _isLaunchedManuallyByEndUser;
+            }
+        }
+
+        public StartupManager(string[] args)
         {
             _appFilePath = Assembly.GetExecutingAssembly().Location;
+
+            _isLaunchedManuallyByEndUser = !args.Contains(AutoLaunchKey);
         }
 
         public void SetAutoLaunch(bool isEnabled)
         {
             if (isEnabled)
             {
-                CommonImplementation.System.Startup.Set(_appFilePath);
+                CommonImplementation.System.Startup.Set(_appFilePath, "autolaunch");
             }
             else
             {

@@ -74,13 +74,13 @@ namespace StartItUp.View.Main
 
         public new void Show()
         {
-            if (_startupManager.IsAutoLaunchEnabled)
+            if (_startupManager.IsLaunchedManuallyByEndUser)
             {
-                HideWindow();
+                ShowWindow();
             }
             else
             {
-                ShowWindow();
+                HideWindow();
             }
         }
 
