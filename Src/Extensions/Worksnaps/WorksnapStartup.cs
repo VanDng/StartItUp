@@ -1,7 +1,9 @@
 ﻿using CommonImplementation.WindowsAPI;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,18 +15,30 @@ namespace Worksnaps
     {
         private const string WorkSnapsProcessName = "WSClient";
 
-        private Timer _lauchingTimer;
-        private int _launchingInterval;
-
         private const string LoginWindow = " Worksnaps Client - Login";
         private const string SelectProjectWindow = " Worksnaps Client - Select your project";
         private const string TaskInformationWindow = " Worksnaps Client - Enter Task Information";
 
+        private Timer _lauchingTimer;
+        private int _launchingInterval;
+
+        private const string ConfigFileName = "config.json";
+        private Config _config;
+        private Config _defaultConfig;
+
+        public string ConfigDir { get; set; }
+
         public WorksnapStartup()
         {
             _launchingInterval = 1000;
-
             _lauchingTimer = new Timer(_lauchingTimer_Tick, null, Timeout.Infinite, _launchingInterval);
+
+            _config = null;
+
+            _defaultConfig = new Config()
+            {
+                WorksnapsClientFilePath = @"C:\Program Files (x86)\Worksnaps\WSClient.exe"
+            };
         }
 
         public void Start()
@@ -35,6 +49,44 @@ namespace Worksnaps
         public void Stop()
         {
             _lauchingTimer.Change(Timeout.Infinite, _launchingInterval);
+        }
+
+        public void LoadConfig()
+        {
+            var configFile = Path.Combine(ConfigDir, ConfigFileName);
+
+            string configJson = string.Empty;
+            
+            if (File.Exists(configFile))
+            {
+                configJson = File.ReadAllText(configFile);
+            }
+
+            _config = null;
+
+            if (!string.IsNullOrEmpty(configJson))
+            {
+                try
+                {
+                    _config = JsonConvert.DeserializeObject<Config>(configJson);
+                }
+                catch
+                { }
+            }
+
+            if (_config == null)
+            {
+                _config = _defaultConfig;
+            }
+        }
+
+        public void SaveConfig()
+        {
+            string configJson = JsonConvert.SerializeObject(_config, Formatting.Indented);
+
+            var configFile = Path.Combine(ConfigDir, ConfigFileName);
+
+            File.WriteAllText(configFile, configJson);
         }
 
         private void _lauchingTimer_Tick(object sender)
@@ -69,7 +121,12 @@ namespace Worksnaps
         {
             Debug.WriteLine("Launching...");
 
-            Process.Start(@"C:\Program Files (x86)\Worksnaps\WSClient.exe");
+            var wsclientPath = _config.WorksnapsClientFilePath;
+
+            if (File.Exists(wsclientPath))
+            {
+                Process.Start(wsclientPath);
+            }
         }
 
         private bool IsWorksnapsLaunched()

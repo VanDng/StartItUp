@@ -11,6 +11,13 @@ namespace CommonImplementation.System
 {
     static public class Startup
     {
+        /*
+         * TODO Look for the diffences between ways of startup.
+         *    - Shortcut in Startup folder
+         *    - Registry
+         */ 
+
+
         static private readonly string StartupPrefix = "__";
         static private readonly string StartupSuffix = "__";
 

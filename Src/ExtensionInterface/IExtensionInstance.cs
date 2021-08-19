@@ -9,6 +9,7 @@ namespace ExtensionInterface
         void Start();
         void Stop();
 
+        void SetConfigDir(string configDir);
         void Config();
     }
 }

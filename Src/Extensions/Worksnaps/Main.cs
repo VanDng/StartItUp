@@ -1,12 +1,5 @@
 ﻿using ExtensionInterface;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
+using System.IO;
 
 namespace Worksnaps
 {
@@ -17,6 +10,14 @@ namespace Worksnaps
         public Main()
         {
             _worksnapsStartup = new WorksnapStartup();
+        }
+
+        public  void SetConfigDir(string configDir)
+        {
+            _worksnapsStartup.ConfigDir = configDir;
+
+            _worksnapsStartup.LoadConfig();
+            _worksnapsStartup.SaveConfig();
         }
 
         public void Start()
@@ -31,6 +32,7 @@ namespace Worksnaps
 
         public void Config()
         {
+            
         }
     }
 }

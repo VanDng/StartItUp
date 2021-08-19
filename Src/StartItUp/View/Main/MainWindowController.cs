@@ -18,15 +18,17 @@ namespace StartItUp.View.Main
     class MainWindowController : MainWindow
     {
         private MainWindowViewModel _viewModel;
+        private StartupManager _startupManager;
 
         private SystemTrayIcon _systemTrayIcon;
-
         private bool _isAppForcedToClose;
 
         public MainWindowController(ProfileManager profileManager,
                                     ExtensionManager extensionManager,
                                     StartupManager startupManager)
         {
+            _startupManager = startupManager;
+
             Initialization(profileManager, extensionManager, startupManager);
         }
 
@@ -41,7 +43,7 @@ namespace StartItUp.View.Main
             _systemTrayIcon = new SystemTrayIcon();
             _systemTrayIcon.OnDoubleClickOnSystemTrayIcon += (s, e) =>
             {
-                WindowState = WindowState.Normal;
+                ShowWindow(true);
             };
             _systemTrayIcon.OnExitMenuClicked += (s, e) =>
             {
@@ -61,6 +63,8 @@ namespace StartItUp.View.Main
             btnEdit.Command = _viewModel.EditStartupProfile;
             btnDelete.Command = _viewModel.DeleteStartupProfile;
 
+            Initialized += MainWindowController_Initialized;
+            Loaded += MainWindowController_Loaded;
             Closing += MainWindowController_Closing;
 
             _viewModel.OnAskProfileSelection += _viewModel_OnAskProfileSelection;
@@ -68,14 +72,49 @@ namespace StartItUp.View.Main
             _viewModel.OnDeleteStartupProfile += _viewModel_OnDeleteStartupProfile;
         }
 
+        public new void Show()
+        {
+            if (_startupManager.IsAutoLaunchEnabled)
+            {
+                HideWindow();
+            }
+            else
+            {
+                ShowWindow();
+            }
+        }
+
+        private void MainWindowController_Initialized(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void MainWindowController_Loaded(object sender, RoutedEventArgs e)
+        {
+        }
+
         private void MainWindowController_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!_isAppForcedToClose)
             {
                 e.Cancel = true;
+                HideWindow();
+            }
+        }
 
-                WindowState = WindowState.Minimized;
-                _systemTrayIcon.ShowToolTip();
+        private void HideWindow()
+        {
+            Visibility = Visibility.Hidden;
+        }
+
+        private void ShowWindow(bool isActive = false)
+        {
+            Visibility = Visibility.Visible;
+
+            if (isActive)
+            {
+                Activate();
+                Focus();
             }
         }
 

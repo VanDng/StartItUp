@@ -39,5 +39,11 @@ namespace StartItUp.Extensions
             var method = _type.GetMethod("Stop");
             method.Invoke(_instance, null);
         }
+
+        public void SetConfigDir(string configDir)
+        {
+            var method = _type.GetMethod("SetConfigDir");
+            method.Invoke(_instance, new object[] { configDir });
+        }
     }
 }

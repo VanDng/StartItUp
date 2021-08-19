@@ -6,6 +6,7 @@ using StartItUp.View.Model;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -174,6 +175,13 @@ namespace StartItUp.View.Main
             else
             {
                 var extensionInstance = extension.CreateInstance();
+
+                string configDir = profile.ConfigDirectory;
+                if (!Directory.Exists(configDir))
+                {
+                    Directory.CreateDirectory(configDir);
+                }
+                extensionInstance.SetConfigDir(profile.ConfigDirectory);
 
                 startupProfile = new StartupProfile(profile, extensionInstance);
             }
