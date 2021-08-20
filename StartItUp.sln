@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1525
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartItUp", "Src\StartItUp\StartItUp.csproj", "{B8A0D672-DAEE-4CF4-B4B1-F34F0DB27716}"
 EndProject
@@ -15,9 +15,12 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ExtensionInterface", "Src\E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtensionTester", "Src\ExtensionTester\ExtensionTester.csproj", "{9A18127D-A1B9-4ED6-BCB2-96D6A83B18BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenVPN", "Src\Extensions\OpenVPN\OpenVPN.csproj", "{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Src\ExtensionInterface\ExtensionInterface.projitems*{171c15ca-126e-4a70-a529-b21b5d25e8af}*SharedItemsImports = 4
+		Src\ExtensionInterface\ExtensionInterface.projitems*{5a3d95a7-83b3-4bc3-a845-9e8c2fd6ca0c}*SharedItemsImports = 4
 		Src\ExtensionInterface\ExtensionInterface.projitems*{5bf172f2-da98-4445-b95f-9ad64ad38afe}*SharedItemsImports = 13
 		Src\ExtensionInterface\ExtensionInterface.projitems*{b8a0d672-daee-4cf4-b4b1-f34f0db27716}*SharedItemsImports = 4
 	EndGlobalSection
@@ -42,12 +45,17 @@ Global
 		{9A18127D-A1B9-4ED6-BCB2-96D6A83B18BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A18127D-A1B9-4ED6-BCB2-96D6A83B18BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A18127D-A1B9-4ED6-BCB2-96D6A83B18BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{171C15CA-126E-4A70-A529-B21B5D25E8AF} = {FB4ACB7E-75A8-4573-A144-2349C66C72DB}
+		{5A3D95A7-83B3-4BC3-A845-9E8C2FD6CA0C} = {FB4ACB7E-75A8-4573-A144-2349C66C72DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EC81C283-5F13-4C02-AEF9-EA6679109E47}

@@ -16,8 +16,7 @@ namespace CommonImplementation.System
          *    - Shortcut in Startup folder
          *    - Registry
          */ 
-
-
+         
         static private readonly string StartupPrefix = "__";
         static private readonly string StartupSuffix = "__";
 

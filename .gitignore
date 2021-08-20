@@ -7,5 +7,7 @@ Src/StartItUp/obj
 Src/StartItUp/bin
 Src/Extensions/Worksnaps/obj
 Src/Extensions/Worksnaps/bin
+Src/Extensions/OpenVPN/obj
+Src/Extensions/OpenVPN/bin
 Src/ExtensionTester/obj
 Src/ExtensionTester/bin
