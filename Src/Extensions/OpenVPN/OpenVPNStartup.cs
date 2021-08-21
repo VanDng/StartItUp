@@ -9,12 +9,15 @@ using System.Threading;
 
 namespace OpenVPN
 {
-    class OpenVPNStartup
+    class OpenVPNStartup : IDisposable
     {
+        private const string OpenVPNServiceProcessName = "openvpn";
+
         private string _ovpnProfileName;
 
-        private Timer _lauchingTimer;
-        private int _launchingInterval;
+        private Thread _thread;
+        CancellationTokenSource _threadCancelTokenSrc;
+        private ManualResetEvent _startEvent;
 
         private const string ConfigFileName = "config.json";
         private Config _config;
@@ -26,15 +29,19 @@ namespace OpenVPN
         {
             _ovpnProfileName = string.Empty;
 
-            _launchingInterval = 1000;
-            _lauchingTimer = new Timer(_lauchingTimer_Tick, null, Timeout.Infinite, _launchingInterval);
+            _startEvent = new ManualResetEvent(false);
+
+            _threadCancelTokenSrc = new CancellationTokenSource();
+
+            _thread = new Thread(MainProc);
+            _thread.Start(_threadCancelTokenSrc.Token);
 
             _config = null;
 
             _defaultConfig = new Config()
             {
                 ProcessName = "openvpn-gui",
-                ClientFilePath = @"C\Program Files\OpenVPN\bin\openvpn-gui.exe",
+                ClientFilePath = @"C:\Program Files\OpenVPN\bin\openvpn-gui.exe",
                 ConfigDir = string.Format(@"C:\Users\{0}\OpenVPN\{1}", Environment.UserName, "config"),
                 LogDir = string.Format(@"C:\Users\{0}\OpenVPN\{1}", Environment.UserName, "log"),
                 OVPNKeyword = "office-vpn.websparks.sg",
@@ -44,12 +51,12 @@ namespace OpenVPN
 
         public void Start()
         {
-            _lauchingTimer.Change(0, _launchingInterval);
+            _startEvent.Set();
         }
 
         public void Stop()
         {
-            _lauchingTimer.Change(Timeout.Infinite, _launchingInterval);
+            _startEvent.Reset();
         }
 
         public void LoadConfig()
@@ -90,53 +97,58 @@ namespace OpenVPN
             File.WriteAllText(configFile, configJson);
         }
 
-        private void _lauchingTimer_Tick(object sender)
+        private void MainProc(object token)
         {
-            Debug.WriteLine("========== Checking ===========");
+            CancellationToken cancellationToken = (CancellationToken)token;
 
-            if (string.IsNullOrEmpty(_ovpnProfileName))
+            while (true)
             {
-                _ovpnProfileName = FindOVPNProfileName();
-            }
+                _startEvent.WaitOne();
 
-            if (string.IsNullOrEmpty(_ovpnProfileName))
-            {
-                return;
-            }
+                if (cancellationToken.IsCancellationRequested) break;
 
-            if (!IsSilentConnectionSet())
-            {
-                SetSilentConnectionMode();
-            }
+                Debug.WriteLine("========== Checking ===========");
 
-            if (!IsConnecting())
-            {
+                if (string.IsNullOrEmpty(_ovpnProfileName))
+                {
+                    _ovpnProfileName = FindOVPNProfileName();
+                }
+
+                if (string.IsNullOrEmpty(_ovpnProfileName))
+                {
+                    return;
+                }
+
+                if (CloseAnyDialog())
+                {
+                    /*
+                     * If there is any dialog titled "OpenVPN GUI", OpenVPN might be working improperly.
+                     * Therefore, I will stop the OpenVPN service and start all over again.
+                     */
+
+                    StopOpenVPNService();
+                }
+
+                if (!IsSilentConnectionSet())
+                {
+                    SetSilentConnectionMode();
+                }
+
                 if (IsLaunched())
                 {
-                    StopProcess();
+                    if (!LogSaysConnecting())
+                    {
+                        Connect();
+                    }
                 }
                 else
                 {
                     Connect();
                 }
+
+                Thread.Sleep(1000);
             }
         }
-
-        //private void LaunchWithSilentModeEnabled()
-        //{
-        //    Debug.WriteLine("Launching...");
-
-        //    var clientFilePath = _config.ClientFilePath;
-
-        //    if (File.Exists(clientFilePath))
-        //    {
-        //        Process.Start(_config.ClientFilePath, "--slient_connection 1");
-        //    }
-        //    else
-        //    {
-        //        Debug.WriteLine("Cound not found client.");
-        //    }
-        //}
 
         private bool IsLaunched()
         {
@@ -158,22 +170,28 @@ namespace OpenVPN
             return isLaunched;
         }
 
-        private void StopProcess()
+        private void StopOpenVPNService()
         {
-            var process = Process.GetProcessesByName(_config.ProcessName).FirstOrDefault();
+            var serviceProcesses = Process.GetProcessesByName(OpenVPNServiceProcessName);
+            var guiProcesses = Process.GetProcessesByName(_config.ProcessName);
 
-            if (process != null)
+            var processes = serviceProcesses.Union(guiProcesses);
+
+            if (processes != null)
             {
-                try
+                foreach (var p in processes)
                 {
-                    process.Kill();
+                    try
+                    {
+                        p.Kill();
+                    }
+                    catch
+                    { }
                 }
-                catch
-                { }
             }
         }
 
-        private bool IsConnecting()
+        private bool LogSaysConnecting()
         {
             bool isConnecting = false;
 
@@ -184,14 +202,18 @@ namespace OpenVPN
                 var newLogFileName = Guid.NewGuid().ToString();
                 var newlogFilePath = $@"{_config.LogDir}\{newLogFileName}.log";
 
+                string[] logLines = { };
                 try
                 {
                     File.Copy(logFilePath, newlogFilePath);
+
+                    logLines = File.ReadLines(newlogFilePath).Reverse().Take(5).ToArray();
+
+                    File.Delete(newlogFilePath);
                 }
                 catch
                 { }
 
-                var logLines = File.ReadLines(newlogFilePath).Reverse().Take(5);
                 foreach (var log in logLines)
                 {
                     if (log.Contains("Initialization Sequence Completed"))
@@ -213,7 +235,7 @@ namespace OpenVPN
         {
             string ovpnFileProfileName = string.Empty;
 
-            var ovpnFiles = Directory.GetFiles(_config.ConfigDir, "*.ovpn");
+            var ovpnFiles = Directory.GetFiles(_config.ConfigDir, "*.ovpn", SearchOption.AllDirectories);
 
             foreach (var ovpnFile in ovpnFiles)
             {
@@ -267,6 +289,32 @@ namespace OpenVPN
         private void SetSilentConnectionMode()
         {
             Registry.SetValue(_config.RegistryConfigDir, "silent_connection", 1);
+        }
+
+        private bool CloseAnyDialog()
+        {
+            bool isDialogClosed = false;
+
+            IntPtr hwnd = WindowsAPI.FindWindow(null, "OpenVPN GUI");
+            if (hwnd != IntPtr.Zero)
+            {
+                IntPtr button = WindowsAPI.FindWindowEx(hwnd, IntPtr.Zero, "Button", null);
+                if (button  != IntPtr.Zero)
+                {
+                    WindowsAPI.PostMessage(button, WindowsAPI.WM_LBUTTONDOWN, IntPtr.Zero, IntPtr.Zero);
+                    WindowsAPI.PostMessage(button, WindowsAPI.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
+
+                    isDialogClosed = true;
+                }
+            }
+
+            return isDialogClosed;
+        }
+
+        public void Dispose()
+        {
+            _threadCancelTokenSrc.Cancel();
+            _startEvent.Set();
         }
     }
 }
