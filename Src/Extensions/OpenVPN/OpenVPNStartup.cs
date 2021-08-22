@@ -49,6 +49,7 @@ namespace OpenVPN
                 !_thread.IsAlive)
             {
                 _thread = new Thread(MainProc);
+                _thread.IsBackground = true;
                 _thread.Start();
             }
         }
