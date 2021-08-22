@@ -9,7 +9,8 @@ namespace OpenVPN
 {
     class Config
     {
-        public string ProcessName;
+        public string ServiceProcessName;
+        public string GuiProcessName;
         public string ClientFilePath;
         public string ConfigDir;
         public string LogDir;

@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,8 +12,6 @@ namespace OpenVPN
 {
     class OpenVPNStartup : IDisposable
     {
-        private const string OpenVPNServiceProcessName = "openvpn";
-
         private string _ovpnProfileName;
 
         private Thread _thread;
@@ -40,7 +39,8 @@ namespace OpenVPN
 
             _defaultConfig = new Config()
             {
-                ProcessName = "openvpn-gui",
+                ServiceProcessName = "openvpn",
+                GuiProcessName = "openvpn-gui",
                 ClientFilePath = @"C:\Program Files\OpenVPN\bin\openvpn-gui.exe",
                 ConfigDir = string.Format(@"C:\Users\{0}\OpenVPN\{1}", Environment.UserName, "config"),
                 LogDir = string.Format(@"C:\Users\{0}\OpenVPN\{1}", Environment.UserName, "log"),
@@ -123,7 +123,7 @@ namespace OpenVPN
                 {
                     /*
                      * If there is any dialog titled "OpenVPN GUI", OpenVPN might be working improperly.
-                     * Therefore, I will stop the OpenVPN service and start all over again.
+                     * Then, OpenVPN service/GUI will be shutdown and start all over again.
                      */
 
                     StopOpenVPNService();
@@ -136,7 +136,7 @@ namespace OpenVPN
 
                 if (IsLaunched())
                 {
-                    if (!LogSaysConnecting())
+                    if (!IsConnecting())
                     {
                         Connect();
                     }
@@ -158,7 +158,7 @@ namespace OpenVPN
 
             foreach (var process in processCollection)
             {
-                if (process.ProcessName.ToLower() == _config.ProcessName.ToLower())
+                if (process.ProcessName.ToLower() == _config.GuiProcessName.ToLower())
                 {
                     isLaunched = true;
                     break;
@@ -172,8 +172,8 @@ namespace OpenVPN
 
         private void StopOpenVPNService()
         {
-            var serviceProcesses = Process.GetProcessesByName(OpenVPNServiceProcessName);
-            var guiProcesses = Process.GetProcessesByName(_config.ProcessName);
+            var serviceProcesses = Process.GetProcessesByName(_config.ServiceProcessName);
+            var guiProcesses = Process.GetProcessesByName(_config.GuiProcessName);
 
             var processes = serviceProcesses.Union(guiProcesses);
 
@@ -191,9 +191,12 @@ namespace OpenVPN
             }
         }
 
-        private bool LogSaysConnecting()
+        private bool IsConnecting()
         {
             bool isConnecting = false;
+
+            bool isConnectedStringLogged = false;
+            DateTime? logDateTime = null;
 
             var logFilePath = $@"{_config.LogDir}\{_ovpnProfileName}.log";
 
@@ -218,7 +221,9 @@ namespace OpenVPN
                 {
                     if (log.Contains("Initialization Sequence Completed"))
                     {
-                        isConnecting = true;
+                        isConnectedStringLogged = true;
+                        logDateTime = ParseDateTime(log);
+
                         break;
                     }
                 }
@@ -226,6 +231,43 @@ namespace OpenVPN
             else
             {
                 Debug.WriteLine("Could not find log file.");
+            }
+
+            DateTime? processDateTime = ProcessStartTime();
+
+            if (processDateTime == null ||
+                logDateTime == null)
+            {
+                Debug.WriteLine("Can not get necessary information to detect whether it is connecting.");
+
+                string logDateTimeString = logDateTime == null ? "N/A" : logDateTime.Value.ToString();
+                Debug.WriteLine("Log date time: " + logDateTimeString);
+
+                string processDateTimeString = logDateTime == null ? "N/A" : logDateTime.Value.ToString();
+                Debug.WriteLine("Process date time: " + processDateTimeString);
+
+                isConnecting = isConnectedStringLogged;
+            }
+            else
+            {
+                /*
+                 * Somehome the OpenVPN GUI app is running and its connection status is not connected.
+                 * but the old log content is remaining.
+                 * 
+                 * Then, the connection detecting will make a false positive conclusion.
+                 * 
+                 * That is why the process start time is involved.
+                 * 
+                 */
+
+                if (isConnectedStringLogged)
+                {
+                    isConnecting = logDateTime.Value >= processDateTime.Value ? true : false;
+                }
+                else
+                {
+                    isConnecting = false;
+                }
             }
 
             return isConnecting;
@@ -309,6 +351,79 @@ namespace OpenVPN
             }
 
             return isDialogClosed;
+        }
+
+        private DateTime? ParseDateTime(string log)
+        {
+            // Sample "Sun Aug 22 09:57:55 2021 Initialization Sequence Completed"
+
+            DateTime? dateTimeLog = null;
+
+            string[] logParts = log.Split(' ');
+            string yearString = logParts[4];
+            string monthString = logParts[1];
+            string dayString = logParts[2];
+            string timeString = logParts[3];
+
+            int year = 0;
+            int.TryParse(yearString, out year);
+
+            int month = 0;
+            Hashtable months = new Hashtable()
+            {
+                { "Jan", "1" },
+                { "Feb", "2" },
+                { "Mar", "3" },
+                { "Apr", "4" },
+                { "May", "5" },
+                { "Jun", "6" },
+                { "Jul", "7" },
+                { "Aug", "8" },
+                { "Sep", "9" },
+                { "Oct", "10" },
+                { "Nov", "11" },
+                { "Dec", "12" }
+            };
+            if (months.ContainsKey(monthString))
+            {
+                month = int.Parse(months[monthString].ToString());
+            }
+
+            int day = 0;
+            int.TryParse(dayString, out day);
+            if (year > 0 && month > 0)
+            {
+                int daysInMonth = DateTime.DaysInMonth(year, month);
+                day = daysInMonth < day ? daysInMonth : day;
+            }
+
+            DateTime? time = null;
+            DateTime tryparseTime;
+            if (DateTime.TryParse(timeString, out tryparseTime))
+            {
+                time = tryparseTime;
+            }
+
+            if (year > 0 && month > 0 && day > 0 && time != null)
+            {
+                dateTimeLog = new DateTime(year, month, day,
+                                            time.Value.Hour, time.Value.Minute, time.Value.Second);
+            }
+
+            return dateTimeLog;
+        }
+
+        private DateTime? ProcessStartTime()
+        {
+            DateTime? dateTimeProcess = null;
+
+            var guiProcess = Process.GetProcessesByName(_config.GuiProcessName).FirstOrDefault();
+            if (guiProcess != null)
+            {
+                dateTimeProcess = guiProcess.StartTime;
+            }
+
+            return dateTimeProcess;
         }
 
         public void Dispose()
