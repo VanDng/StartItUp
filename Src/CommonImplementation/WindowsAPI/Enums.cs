@@ -8,6 +8,9 @@ namespace CommonImplementation.WindowsAPI
 {
     public static partial class WindowsAPI
     {
+        public const int SW_HIDE = 0;
+        public const int SW_SHOW = 5;
+
         // http://www.pinvoke.net/default.aspx/Enums/WindowsMessages.html
         public const UInt32 WM_LBUTTONDOWN = 0x0201;
         public const UInt32 WM_LBUTTONUP = 0x0202;

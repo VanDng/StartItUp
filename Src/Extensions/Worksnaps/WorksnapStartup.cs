@@ -190,56 +190,26 @@ namespace Worksnaps
         {
             Debug.WriteLine(window + " is proceeding.");
 
+            string[] buttons = new string[] { };
+
             switch (window)
             {
                 case LoginWindow:
-                    ProceedLoginWindow();
+                    buttons = new string[] { "Log In" };
                     break;
 
                 case SelectProjectWindow:
-                    ProceedSelectProjectWindow();
+                    buttons = new string[] { "OK" };
                     break;
 
                 case TaskInformationWindow:
-                    ProceedTaskInformationWindow();
+                    buttons = new string[] { "Start" };
                     break;
             }
-        }
 
-        private void ProceedLoginWindow()
-        {
-            IntPtr hWnd = WindowsAPI.FindWindow(null, LoginWindow);
+            IntPtr hWnd = WindowsAPI.FindWindow(null, window);
             if (hWnd != IntPtr.Zero)
             {
-                IntPtr hWndButton = WindowsAPI.FindWindowEx(hWnd, IntPtr.Zero, null, "Log In");
-
-                WindowsAPI.PostMessage(hWndButton, WindowsAPI.WM_LBUTTONDOWN, IntPtr.Zero, IntPtr.Zero);
-                WindowsAPI.PostMessage(hWndButton, WindowsAPI.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
-            }
-        }
-
-        private void ProceedSelectProjectWindow()
-        {
-            IntPtr hWnd = WindowsAPI.FindWindow(null, SelectProjectWindow);
-            if (hWnd != IntPtr.Zero)
-            {
-                IntPtr hWndButton = WindowsAPI.FindWindowEx(hWnd, IntPtr.Zero, null, "OK");
-
-                WindowsAPI.PostMessage(hWndButton, WindowsAPI.WM_LBUTTONDOWN, IntPtr.Zero, IntPtr.Zero);
-                WindowsAPI.PostMessage(hWndButton, WindowsAPI.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
-            }
-        }
-
-        private void ProceedTaskInformationWindow()
-        {
-            IntPtr hWnd = WindowsAPI.FindWindow(null, TaskInformationWindow);
-            if (hWnd != IntPtr.Zero)
-            {
-                string[] buttons = new string[]
-                {
-                    "OK",
-                    "Start"
-                };
                 foreach (var button in buttons)
                 {
                     IntPtr hWndButton = WindowsAPI.FindWindowEx(hWnd, IntPtr.Zero, null, button);

@@ -32,5 +32,8 @@ namespace CommonImplementation.WindowsAPI
             else
                 return GetWindowLong32(hWnd, nIndex);
         }
+
+        [DllImport("user32.dll")]
+        public static extern bool ShowWindow(IntPtr hWnd, int nIndex);
     }
 }
