@@ -19,10 +19,10 @@ That is all about why this project has been started.
 Currently, there are two profiles:
   - OpenVPN
       - It executes the OpenVPN-GUI app and runs some commands to start connecting to a profile that was imported and connected successfully already.
-      - It does not require/store the user's credential, the credential must be entered to OpenVPN-GUI, and Remember Password is checked.
+      - It does not require/store the user's credential, users have to entered their credential first and Remember Password is checked.
   - Worksnaps
       - It executes the Worksnaps app and performs some clicks to start recording.
-      - It does not require/store the user's credential, the credential must be entered to OpenVPN-GUI, and Remember Password is checked.
+      - It does not require/store the user's credential, users have to entered their credential first and Remember Password is checked.
 
 <p align="center">
     <img src="/Doc/Images/demo.gif" alt="Demo OpenVPN">
