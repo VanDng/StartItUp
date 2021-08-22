@@ -5,7 +5,7 @@ An application that grogrammatically executes other scripts/apps.
 It has a list of available profiles which are developed to interact with certain apps/scripts.
 
 <p align="center">
-    <img width="200" src="/Doc/Images/main.png" alt="Main App">
+    <img src="/Doc/Images/main.png" alt="Main App">
 </p>
 
 This app comes from my very personal reason. While I was working in different projects, I usually had to run some scripts/apps to make my development environment be ready whenever I turned on my computer.
@@ -25,7 +25,7 @@ Currently, there are two profiles:
       - It does not require/store the user's credential, credential must be entered to OpenVPN-GUI and Remember Password is checked.
 
 <p align="center">
-    <img width="200" src="/Doc/Images/demo.gif" alt="Demo OpenVPN">
+    <img src="/Doc/Images/demo.gif" alt="Demo OpenVPN">
 </p>
 
 ### 2. Credit
