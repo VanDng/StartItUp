@@ -15,8 +15,7 @@ namespace OpenVPN
         private string _ovpnProfileName;
 
         private Thread _thread;
-        CancellationTokenSource _threadCancelTokenSrc;
-        private ManualResetEvent _startEvent;
+        private bool _stopWorking;
 
         private const string ConfigFileName = "config.json";
         private Config _config;
@@ -27,13 +26,6 @@ namespace OpenVPN
         public OpenVPNStartup()
         {
             _ovpnProfileName = string.Empty;
-
-            _startEvent = new ManualResetEvent(false);
-
-            _threadCancelTokenSrc = new CancellationTokenSource();
-
-            _thread = new Thread(MainProc);
-            _thread.Start(_threadCancelTokenSrc.Token);
 
             _config = null;
 
@@ -51,12 +43,19 @@ namespace OpenVPN
 
         public void Start()
         {
-            _startEvent.Set();
+            _stopWorking = false;
+
+            if (_thread == null ||
+                !_thread.IsAlive)
+            {
+                _thread = new Thread(MainProc);
+                _thread.Start();
+            }
         }
 
         public void Stop()
         {
-            _startEvent.Reset();
+            _stopWorking = true;
         }
 
         public void LoadConfig()
@@ -97,15 +96,11 @@ namespace OpenVPN
             File.WriteAllText(configFile, configJson);
         }
 
-        private void MainProc(object token)
+        private void MainProc()
         {
-            CancellationToken cancellationToken = (CancellationToken)token;
-
             while (true)
             {
-                _startEvent.WaitOne();
-
-                if (cancellationToken.IsCancellationRequested) break;
+                if (_stopWorking) break;
 
                 Debug.WriteLine("========== Checking ===========");
 
@@ -145,6 +140,8 @@ namespace OpenVPN
                 {
                     Connect();
                 }
+
+                if (_stopWorking) break;
 
                 Thread.Sleep(1000);
             }
@@ -198,40 +195,7 @@ namespace OpenVPN
             bool isConnectedStringLogged = false;
             DateTime? logDateTime = null;
 
-            var logFilePath = $@"{_config.LogDir}\{_ovpnProfileName}.log";
-
-            if (File.Exists(logFilePath))
-            {
-                var newLogFileName = Guid.NewGuid().ToString();
-                var newlogFilePath = $@"{_config.LogDir}\{newLogFileName}.log";
-
-                string[] logLines = { };
-                try
-                {
-                    File.Copy(logFilePath, newlogFilePath);
-
-                    logLines = File.ReadLines(newlogFilePath).Reverse().Take(5).ToArray();
-
-                    File.Delete(newlogFilePath);
-                }
-                catch
-                { }
-
-                foreach (var log in logLines)
-                {
-                    if (log.Contains("Initialization Sequence Completed"))
-                    {
-                        isConnectedStringLogged = true;
-                        logDateTime = ParseDateTime(log);
-
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                Debug.WriteLine("Could not find log file.");
-            }
+            isConnectedStringLogged = IsConnectedStringLogged(out logDateTime);
 
             DateTime? processDateTime = ProcessStartTime();
 
@@ -243,7 +207,7 @@ namespace OpenVPN
                 string logDateTimeString = logDateTime == null ? "N/A" : logDateTime.Value.ToString();
                 Debug.WriteLine("Log date time: " + logDateTimeString);
 
-                string processDateTimeString = logDateTime == null ? "N/A" : logDateTime.Value.ToString();
+                string processDateTimeString = processDateTime == null ? "N/A" : processDateTime.Value.ToString();
                 Debug.WriteLine("Process date time: " + processDateTimeString);
 
                 isConnecting = isConnectedStringLogged;
@@ -353,6 +317,49 @@ namespace OpenVPN
             return isDialogClosed;
         }
 
+        private bool IsConnectedStringLogged(out DateTime? logDateTime)
+        {
+            bool isConnectedStringLogged = false;
+            logDateTime = null;
+
+            var logFilePath = $@"{_config.LogDir}\{_ovpnProfileName}.log";
+
+            if (File.Exists(logFilePath))
+            {
+                var newLogFileName = Guid.NewGuid().ToString();
+                var newlogFilePath = $@"{_config.LogDir}\{newLogFileName}.log";
+
+                string[] logLines = { };
+                try
+                {
+                    File.Copy(logFilePath, newlogFilePath);
+
+                    logLines = File.ReadLines(newlogFilePath).Reverse().Take(5).ToArray();
+
+                    File.Delete(newlogFilePath);
+                }
+                catch
+                { }
+
+                foreach (var log in logLines)
+                {
+                    if (log.Contains("Initialization Sequence Completed"))
+                    {
+                        isConnectedStringLogged = true;
+                        logDateTime = ParseDateTime(log);
+
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Debug.WriteLine("Could not find log file.");
+            }
+
+            return isConnectedStringLogged;
+        }
+
         private DateTime? ParseDateTime(string log)
         {
             // Sample "Sun Aug 22 09:57:55 2021 Initialization Sequence Completed"
@@ -428,8 +435,6 @@ namespace OpenVPN
 
         public void Dispose()
         {
-            _threadCancelTokenSrc.Cancel();
-            _startEvent.Set();
         }
     }
 }
