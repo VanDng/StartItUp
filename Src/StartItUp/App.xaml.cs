@@ -26,16 +26,35 @@ namespace StartItUp
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            var rootDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            /*
+             * Extension manager
+             */
+            var appExecutionDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            
+            var extensionManager = new ExtensionManager();
+            extensionManager.Load(appExecutionDir);
 
-            var profileManager = new ProfileManager(rootDir);
+            /*
+             * Profile manager
+             */
+            var appDataDir = $@"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\StartItUp";
+            if (!Directory.Exists(appDataDir))
+            {
+                Directory.CreateDirectory(appDataDir);
+            }
+
+            var profileManager = new ProfileManager(appDataDir);
             profileManager.Load();
 
-            var extensionManager = new ExtensionManager();
-            extensionManager.Load(rootDir);
+            /*
+             * Startup manager
+             */
 
             var startupManager = new StartupManager(e.Args);
 
+            /*
+             * Main Window
+             */
             MainWindowController main = new MainWindowController(profileManager, extensionManager, startupManager);
             main.Show();
         }
