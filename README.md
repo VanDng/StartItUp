@@ -16,22 +16,9 @@ Until recently, I decided to create an app with a long-term enhancement, I do no
 
 That is all about why this project has been started.
 
-### 2. Setup
-  - Prerequisite
-       - Make sure that OpenVPN and Worksnaps have been successfully connected/recording already.
-       - Remember Password option is checked. (In case you did not know. If OpenVPN and Worksnaps work fine every time and you do not need to enter the credential, Remember Password option is checked). 
-
-  - Config
-            <p align="center">
-                <img src="/Doc/Images/setup.png" alt="Setup Steps">
-            </p>
-       - Step (1)(2)(3): Open the StartItUp.exe, add necessary profiles.
-       - Step (4): Activate/Deactivate a profile.
-
-  - Demonstration
-            <p align="center">
-                <img src="/Doc/Images/demo.gif" alt="Demo OpenVPN">
-            </p>
+<p align="center">
+    <img src="/Doc/Images/demo.gif" alt="Demo OpenVPN">
+</p>
 
 ### 3. Credit
 The app's icon is downloaded from https://www.pinclipart.com/pindetail/xRiTRJ_launch-launch-icon-clipart/
