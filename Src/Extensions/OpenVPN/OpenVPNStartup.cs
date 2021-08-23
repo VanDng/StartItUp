@@ -115,15 +115,17 @@ namespace OpenVPN
                     return;
                 }
 
-                if (CloseAnyDialog())
-                {
-                    /*
-                     * If there is any dialog titled "OpenVPN GUI", OpenVPN might be working improperly.
-                     * Then, OpenVPN service/GUI will be shutdown and start all over again.
-                     */
+                // It might cause problem about privilege. Not sure, check later.
+                // 
+                //if (CloseAnyDialog())
+                //{
+                //    /*
+                //     * If there is any dialog titled "OpenVPN GUI", OpenVPN might be working improperly.
+                //     * Then, OpenVPN service/GUI will be shutdown and start all over again.
+                //     */
 
-                    StopOpenVPNService();
-                }
+                //    StopOpenVPNService();
+                //}
 
                 if (!IsSilentConnectionSet())
                 {
