@@ -1,6 +1,8 @@
 ﻿using CommonImplementation.WindowsAPI;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Serilog;
+using Serilog.Core;
 using System;
 using System.Collections;
 using System.Diagnostics;

@@ -1,4 +1,5 @@
 ﻿using ExtensionInterface;
+using Serilog;
 using System.IO;
 
 namespace OpenVPN
@@ -9,6 +10,8 @@ namespace OpenVPN
 
         public Main()
         {
+
+
             _worksnapsStartup = new OpenVPNStartup();
         }
 
@@ -18,6 +21,18 @@ namespace OpenVPN
 
             _worksnapsStartup.LoadConfig();
             _worksnapsStartup.SaveConfig();
+
+
+            var logDir = $@"{configDir}\Logs";
+            if (!Directory.Exists(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+
+            Log.Logger = new LoggerConfiguration()
+                           .MinimumLevel.Debug()
+                           .WriteTo.File($@"{logDir}\log.txt", rollingInterval: RollingInterval.Day)
+                           .CreateLogger();
         }
 
         public void Start()
