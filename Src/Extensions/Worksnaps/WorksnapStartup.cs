@@ -1,6 +1,8 @@
 ﻿using CommonImplementation.WindowsAPI;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -11,6 +13,7 @@ namespace Worksnaps
     {
         private const string WorkSnapsProcessName = "WSClient";
 
+        private const string ErrorWindow = "Login";
         private const string LoginWindow = " Worksnaps Client - Login";
         private const string SelectProjectWindow = " Worksnaps Client - Select your project";
         private const string TaskInformationWindow = " Worksnaps Client - Enter Task Information";
@@ -96,6 +99,15 @@ namespace Worksnaps
 
             if (!IsWorksnapsRecording())
             {
+                if (IsWindowAvailable(ErrorWindow))
+                {
+                    /*
+                     * Currently, I can not manage to close the error window.
+                     * I can only close the process instead, and start all over again.
+                     */
+                    CloseClient();
+                }
+
                 if (IsWindowAvailable(LoginWindow) && IsWindowVisibile(LoginWindow))
                 {
                     ProceedWindow(LoginWindow);
@@ -219,6 +231,20 @@ namespace Worksnaps
                         WindowsAPI.PostMessage(hWndButton, WindowsAPI.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
                     }
                 }
+            }
+        }
+
+        private void CloseClient()
+        {
+            var processes = Process.GetProcessesByName(WorkSnapsProcessName);
+            foreach(var process in processes)
+            {
+                try
+                {
+                    process.Kill();
+                }
+                catch
+                { }
             }
         }
     }
