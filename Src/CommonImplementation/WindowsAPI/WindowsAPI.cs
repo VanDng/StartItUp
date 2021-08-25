@@ -16,6 +16,12 @@ namespace CommonImplementation.WindowsAPI
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern bool PostMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
+        public static extern bool SendMessage(IntPtr hWnd, UInt32 Msg, int wParam, StringBuilder lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, int wparam, int lparam);
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lclassName, string windowTitle);
 
@@ -35,5 +41,36 @@ namespace CommonImplementation.WindowsAPI
 
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", SetLastError = false)]
+        public static extern IntPtr GetDesktopWindow();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetWindow(IntPtr hWnd, GetWindowType uCmd);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern int GetWindowTextLength(IntPtr hWnd);
+
+        public static string GetWindowText(IntPtr hWnd)
+        {
+            Int32 titleSize = SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0).ToInt32();
+
+            StringBuilder title = null;
+
+            if (titleSize != 0)
+            {
+                title = new StringBuilder(titleSize + 1);
+
+                SendMessage(hWnd, WM_GETTEXT, title.Capacity, title);
+            }
+
+            return title == null ? string.Empty : title.ToString();
+        }
+
+        public static void LeftClick(IntPtr hwnd)
+        {
+            WindowsAPI.PostMessage(hwnd, WindowsAPI.WM_LBUTTONDOWN, IntPtr.Zero, IntPtr.Zero);
+            WindowsAPI.PostMessage(hwnd, WindowsAPI.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
+        }
     }
 }
