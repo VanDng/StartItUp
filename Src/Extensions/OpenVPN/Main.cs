@@ -33,6 +33,8 @@ namespace OpenVPN
                            .MinimumLevel.Debug()
                            .WriteTo.File($@"{logDir}\log.txt", rollingInterval: RollingInterval.Day)
                            .CreateLogger();
+
+            Log.Information(":::: Login Begin ::::");
         }
 
         public void Start()

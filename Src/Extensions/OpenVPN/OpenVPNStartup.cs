@@ -8,6 +8,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace OpenVPN
@@ -248,6 +249,14 @@ namespace OpenVPN
 
             var ovpnFiles = Directory.GetFiles(_config.ConfigDir, "*.ovpn", SearchOption.AllDirectories);
 
+            StringBuilder sbLog = new StringBuilder();
+            sbLog.Append($"Available opvn profiles: {ovpnFiles.Length}").AppendLine();
+            foreach(var ovpnFile in ovpnFiles)
+            {
+                sbLog.Append(ovpnFile).AppendLine();
+            }
+            Log.Information(sbLog.ToString());
+
             foreach (var ovpnFile in ovpnFiles)
             {
                 string fileContent = File.ReadAllText(ovpnFile);
@@ -261,11 +270,13 @@ namespace OpenVPN
 
             if (string.IsNullOrEmpty(ovpnFileProfileName))
             {
-                Debug.WriteLine("Could not find any ovpn file containing the defined key word.");
+                string message = $@"Could not find any ovpn file containing '{_config.OVPNKeyword}'.";
+                Log.Information(message);
             }
             else
             {
-                Debug.WriteLine("OVPN Profile: " + ovpnFileProfileName);
+                string message = $"Found ovpn profile '{ovpnFileProfileName}'.";
+                Log.Information(message);
             }
 
             return ovpnFileProfileName;
@@ -283,7 +294,8 @@ namespace OpenVPN
             }
             else
             {
-                Debug.WriteLine("Cound not found client.");
+                var message = $"Could not find client at path '{clientFilePath}'.";
+                Log.Information(message);
             }
         }
 
