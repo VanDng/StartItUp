@@ -1,4 +1,5 @@
-﻿using CommonImplementation.WindowsAPI;
+﻿using CommonImplementation.System;
+using CommonImplementation.WindowsAPI;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
@@ -13,13 +14,19 @@ namespace Worksnaps
     {
         private const string WorkSnapsProcessName = "WSClient";
 
-        private const string ErrorWindow = "Login";
+        private const string ErrorWindow = "ErrorWindow";
         private const string LoginWindow = " Worksnaps Client - Login";
         private const string SelectProjectWindow = " Worksnaps Client - Select your project";
         private const string TaskInformationWindow = " Worksnaps Client - Enter Task Information";
 
-        private Timer _lauchingTimer;
-        private int _launchingInterval;
+        private KeyValuePair<string, string>[] ErrorWindows = new KeyValuePair<string, string>[] 
+        {
+            new KeyValuePair<string, string>("Login", "Cannot connect to the server. Please try again later."),
+            new KeyValuePair<string, string>("Error", "Cannot retrieve the task list. This might be due to temporary issue on the server.\nPlease try again later.")
+        };
+
+        private Thread _thread;
+        private bool _isStop;
 
         private const string ConfigFileName = "config.json";
         private Config _config;
@@ -29,25 +36,33 @@ namespace Worksnaps
 
         public WorksnapStartup()
         {
-            _launchingInterval = 1000;
-            _lauchingTimer = new Timer(_lauchingTimer_Tick, null, Timeout.Infinite, _launchingInterval);
-
             _config = null;
 
             _defaultConfig = new Config()
             {
-                WorksnapsClientFilePath = @"C:\Program Files (x86)\Worksnaps\WSClient.exe"
+                WorksnapsClientFilePath = @"C:\Program Files (x86)\Worksnaps\WSClient.exe",
+                CheckingInterval = 5000,
+                StartupDelay = 10000,
+                UrlForConnectionChecking = "https://www.worksnaps.net/www/index.shtml"
             };
         }
 
         public void Start()
         {
-            _lauchingTimer.Change(0, _launchingInterval);
+            _isStop = false;
+
+            if (_thread == null)
+            {
+                _thread = new Thread(_lauchingTimer_Tick);
+                _thread.IsBackground = true;
+                _thread.Start();
+            }
         }
 
         public void Stop()
         {
-            _lauchingTimer.Change(Timeout.Infinite, _launchingInterval);
+            _isStop = true;
+            _thread = null;
         }
 
         public void LoadConfig()
@@ -90,38 +105,61 @@ namespace Worksnaps
 
         private void _lauchingTimer_Tick(object sender)
         {
-            Debug.WriteLine("========== Checking ===========");
-
-            if (!IsWorksnapsLaunched())
+            while (!_isStop)
             {
-                LaunchWorksnaps();
-            }
+                Debug.WriteLine("========== Checking ===========");
 
-            if (!IsWorksnapsRecording())
-            {
-                if (IsWindowAvailable(ErrorWindow))
+                if (!IsWorksnapsLaunched())
                 {
-                    /*
-                     * Currently, I can not manage to close the error window.
-                     * I can only close the process instead, and start all over again.
-                     */
-                    CloseClient();
+                    if (!Network.IsInternetRecentlyConnected(_config.UrlForConnectionChecking))
+                    {
+                        Debug.WriteLine("Internet connection is not available at the moment.");
+
+                        Thread.Sleep(_config.StartupDelay);
+                        continue;
+                    }
+                    else
+                    {
+                        LaunchWorksnaps();
+                    }
                 }
 
-                if (IsWindowAvailable(LoginWindow) && IsWindowVisibile(LoginWindow))
+                if (!IsWorksnapsRecording())
                 {
-                    ProceedWindow(LoginWindow);
-                }
+                    if (IsWindowAvailable(ErrorWindow))
+                    {
+                        /*
+                            * Currently, I can not manage to close the error window.
+                            * I can only close the process instead, and start all over again.
+                            * 
+                            * TODO Find a better way to handle this situation.
+                            */
+                        CloseClient();
+                    }
+                    else
+                    {
+                        if (IsWindowAvailable(LoginWindow) && IsWindowVisibile(LoginWindow))
+                        {
+                            ProceedWindow(LoginWindow);
+                        }
 
-                if (IsWindowAvailable(SelectProjectWindow))
-                {
-                    ProceedWindow(SelectProjectWindow);
-                }
+                        if (IsWindowAvailable(SelectProjectWindow))
+                        {
+                            ProceedWindow(SelectProjectWindow);
+                        }
 
-                if (IsWindowAvailable(TaskInformationWindow))
-                {
-                    ProceedWindow(TaskInformationWindow);
+                        if (IsWindowAvailable(TaskInformationWindow))
+                        {
+                            ProceedWindow(TaskInformationWindow);
+                        }
+                    }
+
+                    Thread.Sleep(1000);
                 }
+                else
+                {
+                    Thread.Sleep(_config.CheckingInterval);
+                }  
             }
         }
 
@@ -190,8 +228,39 @@ namespace Worksnaps
 
         private bool IsWindowAvailable(string window)
         {
-            IntPtr hWnd = WindowsAPI.FindWindow(null, window);
-            bool isAvailable = hWnd != IntPtr.Zero;
+            bool isAvailable = false;
+
+            if (window == ErrorWindow)
+            {
+                foreach (var errorWindow in ErrorWindows)
+                {
+                    IntPtr hwnd = WindowsAPI.FindWindow("#32770", errorWindow.Key); // #32770 = Dialog
+                    if (hwnd != IntPtr.Zero)
+                    {
+                        IntPtr controlHwnd = IntPtr.Zero;
+                        do
+                        {
+                            controlHwnd = WindowsAPI.FindWindowEx(hwnd, controlHwnd, "Static", null); // Static = Text/Label
+                            if (controlHwnd != IntPtr.Zero)
+                            {
+                                var text = WindowsAPI.GetWindowText(controlHwnd);
+                                if (text == errorWindow.Value)
+                                {
+                                    isAvailable = true;
+                                    break;
+                                }
+                            }
+                        } while (controlHwnd != IntPtr.Zero);
+                    }
+
+                    if (isAvailable) break;
+                }
+            }
+            else
+            {
+                IntPtr hWnd = WindowsAPI.FindWindow(null, window);
+                isAvailable = hWnd != IntPtr.Zero;
+            }
 
             Debug.WriteLine(window + " is available: " + isAvailable);
 

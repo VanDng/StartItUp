@@ -10,19 +10,19 @@ namespace CommonImplementation.WindowsAPI
 
     public static partial class WindowsAPI
     {
-        [DllImport("user32.dll", SetLastError = true, EntryPoint = "FindWindow")]
+        [DllImport("user32.dll", SetLastError = true, EntryPoint = "FindWindow", CharSet = CharSet.Auto)]
         public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern bool PostMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", EntryPoint = "SendMessage", CharSet = CharSet.Auto)]
-        public static extern bool SendMessage(IntPtr hWnd, UInt32 Msg, int wParam, StringBuilder lParam);
+        public static extern bool SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
 
         [DllImport("user32.dll", SetLastError = true)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, int wparam, int lparam);
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wparam, int lparam);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string lclassName, string windowTitle);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
@@ -53,7 +53,7 @@ namespace CommonImplementation.WindowsAPI
 
         public static string GetWindowText(IntPtr hWnd)
         {
-            Int32 titleSize = SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0).ToInt32();
+            Int32 titleSize = SendMessage(hWnd, (int)WM_GETTEXTLENGTH, 0, 0).ToInt32();
 
             StringBuilder title = null;
 

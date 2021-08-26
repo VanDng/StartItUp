@@ -9,5 +9,8 @@ namespace Worksnaps
     class Config
     {
         public string WorksnapsClientFilePath;
+        public int CheckingInterval;
+        public int StartupDelay;
+        public string UrlForConnectionChecking;
     }
 }
