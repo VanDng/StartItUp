@@ -37,6 +37,7 @@ namespace StartItUp.View.Main
         public ICommand CreateNewProfile { get; private set; }
 
         public ObservableCollection<StartupProfile> StartupProfiles { get; set; }
+        public StartupProfile SelectedStartupProfile { get; set; }
 
         private bool _AutoStartApplicationWithSystem;
         public bool AutoStartApplicationWithSystem
@@ -66,7 +67,7 @@ namespace StartItUp.View.Main
 
             NewStartupProfile = new RelayCommand<object>(ExecuteNewStartupProfileCommand);
             EditStartupProfile = new RelayCommand<object>(ExecuteEditStartupProfileCommand);
-            DeleteStartupProfile = new RelayCommand<object>(ExecuteDeleteStartupProfileCommand);
+            DeleteStartupProfile = new RelayCommand<object>(ExecuteDeleteStartupProfileCommand, CanDeleteStartupProfileCommandIsExecuted);
 
             CreateNewProfile = new RelayCommand<object>(ExecuteCreateNewProfileCommand);
            
@@ -79,30 +80,41 @@ namespace StartItUp.View.Main
 
         private void StartupProfiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            if (e.NewItems == null) return;
-
-            foreach (var newProfile in e.NewItems.Cast<StartupProfile>())
+            if (e.OldItems != null)
             {
-                /*
-                 *  When the application starts up,
-                 *  all profiles are executed once.
-                 */
-                ExecuteProfile(newProfile);
-
-                /*
-                 * Whenever a users disable/enable a profile on GUI,
-                 * that profile will be started/stopped working correspondingly.
-                 */
-                newProfile.Profile.PropertyChanged += (s, pe) =>
+                foreach (var profile in e.OldItems.Cast<StartupProfile>())
                 {
-                    _profileManager.Save();
-
-                    if (pe.PropertyName == nameof(newProfile.Profile.IsEnabled))
-                    {
-                        ExecuteProfile(newProfile);
-                    }
-                };
+                    _profileManager.Delete(profile.Profile);
+                }
             }
+
+            if (e.NewItems != null)
+            {
+                foreach (var newProfile in e.NewItems.Cast<StartupProfile>())
+                {
+                    /*
+                     *  When the application starts up,
+                     *  all profiles are executed once.
+                     */
+                    ExecuteProfile(newProfile);
+
+                    /*
+                     * Whenever a users disable/enable a profile on GUI,
+                     * that profile will be started/stopped working correspondingly.
+                     */
+                    newProfile.Profile.PropertyChanged += (s, pe) =>
+                    {
+                        _profileManager.Save();
+
+                        if (pe.PropertyName == nameof(newProfile.Profile.IsEnabled))
+                        {
+                            ExecuteProfile(newProfile);
+                        }
+                    };
+                }
+            }
+
+            _profileManager.Save();
         }
 
         private void MainWindowViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -126,6 +138,24 @@ namespace StartItUp.View.Main
         private void ExecuteDeleteStartupProfileCommand(object o)
         {
             OnDeleteStartupProfile?.Invoke(null, null);
+
+            /*
+             * TODO How should I delete the target startup profile item?
+             *   - Get the selected item directly.
+             *   - Get the target from the parameter
+             */
+
+            if (SelectedStartupProfile.Profile.IsEnabled)
+            {
+                SelectedStartupProfile.Executor.Stop();
+            }
+
+            StartupProfiles.Remove(SelectedStartupProfile);
+        }
+
+        private bool CanDeleteStartupProfileCommandIsExecuted(object o)
+        {
+            return SelectedStartupProfile == null ? false : true;
         }
 
         private void ExecuteCreateNewProfileCommand(object o)
@@ -143,7 +173,6 @@ namespace StartItUp.View.Main
             else
             {
                 StartupProfiles.Add(startupProfile);
-                _profileManager.Save();
             }
         }
 

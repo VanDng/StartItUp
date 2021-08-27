@@ -59,6 +59,10 @@ namespace StartItUp.View.Main
             startupProfileListBinding.Source = _viewModel;
             BindingOperations.SetBinding(ltvStartupProfiles, ListView.ItemsSourceProperty, startupProfileListBinding);
 
+            Binding selectedStartupProfile = new Binding(nameof(_viewModel.SelectedStartupProfile));
+            selectedStartupProfile.Source = _viewModel;
+            BindingOperations.SetBinding(ltvStartupProfiles, ListView.SelectedItemProperty, selectedStartupProfile);
+
             btnNew.Command = _viewModel.NewStartupProfile;
             btnEdit.Command = _viewModel.EditStartupProfile;
             btnDelete.Command = _viewModel.DeleteStartupProfile;
@@ -135,7 +139,6 @@ namespace StartItUp.View.Main
 
         private void _viewModel_OnDeleteStartupProfile(object sender, EventArgs e)
         {
-            MessageBox.Show("Not Implemented.");
         }
     }
 }
