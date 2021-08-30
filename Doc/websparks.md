@@ -1,6 +1,6 @@
 ## Demonstration
 <p align="center">
-    <img src="Doc/Images/demo.gif" alt="Demo OpenVPN">
+    <img src="Images/demo.gif" alt="Demo OpenVPN">
 </p>
 
 ## Preparation
@@ -13,13 +13,13 @@ If you want to enjoy it right away, download the “StartItUp_v0.2.7z”. Otherw
    - Make sure that OpenVPN and Worksnaps have been successfully connected/recording already.
    - Remember Password option is checked. (In case you did not know. If OpenVPN and Worksnaps work fine every time and you do not need to enter the credential, Remember Password option is checked). 
 <p align="center">
-    <img src="Doc/Images/pre.png" alt="Prerequisite">
+    <img src="Images/pre.png" alt="Prerequisite">
 </p>
 
 
 #### Config
   - Illustration:<p align="center">
-    <img src="Doc/Images/setup.png" alt="Config illustration">
+    <img src="Images/setup.png" alt="Config illustration">
 </p>
 
   - Step (1),(2),(3): Open the StartItUp.exe, add necessary profiles.
